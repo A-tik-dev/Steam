@@ -19,6 +19,14 @@ const api = axios.create({
   },
 });
 
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
 // EN: Game discovery API group. These endpoints proxy IGDB data through our backend.
 // RU: Группа API для поиска игр. Эти endpoints отдают данные IGDB через наш backend.
 export const gameService = {

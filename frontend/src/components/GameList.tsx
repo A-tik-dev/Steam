@@ -2,6 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { gameService } from '../services/api';
 import { Game } from '../types';
 import GameDetails from './GameDetails';
+import GameCard from './GameCard';
+import SearchBar from './SearchBar';
+import Pagination from './Pagination';
+import AuthModal from './AuthModal';
 import './GameList.css';
 
 // EN: Main catalog container. Controls loading, searching, pagination, and details modal opening.
@@ -14,6 +18,8 @@ const GameList: React.FC = () => {
   const [limit, setLimit] = useState<number>(50);
   const [offset, setOffset] = useState<number>(0);
   const [selectedGameId, setSelectedGameId] = useState<number | null>(null);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(false);
+  const [username, setUsername] = useState<string | null>(localStorage.getItem('username'));
 
   // EN: Loads one page of popular games from backend and updates UI state atomically.
   // RU: Загружает одну страницу популярных игр с backend и атомарно обновляет состояние UI.
@@ -68,6 +74,16 @@ const GameList: React.FC = () => {
     setOffset(Math.max(0, offset - limit));
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('username');
+    setUsername(null);
+  };
+
+  const handleAuthSuccess = (_token: string, newUsername: string) => {
+    setUsername(newUsername);
+  };
+
   if (loading && games.length === 0) {
     return <div className="loading">Loading games...</div>;
   }
@@ -81,94 +97,50 @@ const GameList: React.FC = () => {
       <header className="header">
         <div className="header-top">
           <h1>🎮 Popular Games from IGDB</h1>
+          <div className="auth-section">
+            {username ? (
+              <div className="user-info">
+                <span>Welcome, {username}!</span>
+                <button onClick={handleLogout} className="logout-button">Logout</button>
+              </div>
+            ) : (
+              <button onClick={() => setIsAuthModalOpen(true)} className="login-button">Login / Register</button>
+            )}
+          </div>
         </div>
-        <div className="search-bar">
-          <input
-            type="text"
-            placeholder="Search games..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-          />
-          <button onClick={handleSearch}>Search</button>
-          <button onClick={fetchGames}>Show Popular</button>
-          <select
-            value={limit}
-            onChange={(e) => {
-              setLimit(Number(e.target.value));
-              setOffset(0);
-            }}
-            className="limit-select"
-          >
-            <option value="20">20 games</option>
-            <option value="50">50 games</option>
-            <option value="100">100 games</option>
-            <option value="200">200 games</option>
-          </select>
-        </div>
+        <SearchBar
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          onSearch={handleSearch}
+          onShowPopular={fetchGames}
+          limit={limit}
+          setLimit={(newLimit) => {
+            setLimit(newLimit);
+            setOffset(0);
+          }}
+        />
       </header>
 
       <div className="all-games-section">
         <h2>📚 Games ({games.length})</h2>
         <div className="games-grid">
           {games.map((game) => (
-            <div
+            <GameCard
               key={game.id}
-              className="game-card"
-              onClick={() => setSelectedGameId(game.id)}
-              style={{ cursor: 'pointer' }}
-            >
-              <div className="game-image">
-                {game.cover?.url ? (
-                  <img src={game.cover.url} alt={game.name} />
-                ) : (
-                  <div className="no-image">No Image</div>
-                )}
-              </div>
-              <div className="game-info">
-                <h3 title={game.name}>{game.name}</h3>
-                <p className="game-description">
-                  {game.summary?.substring(0, 100)}
-                  {game.summary && game.summary.length > 100 ? '...' : ''}
-                </p>
-                {game.genres && game.genres.length > 0 && (
-                  <div className="game-categories">
-                    {game.genres.slice(0, 3).map((genre, index) => (
-                      <span key={index} className="category-tag">
-                        {genre.name}
-                      </span>
-                    ))}
-                  </div>
-                )}
-                {game.rating && (
-                  <div className="game-footer">
-                    <span className="rating">
-                      ⭐ {game.rating.toFixed(1)}
-                    </span>
-                  </div>
-                )}
-              </div>
-            </div>
+              game={game}
+              onClick={setSelectedGameId}
+            />
           ))}
         </div>
 
-        <div className="pagination">
-          <button
-            onClick={handleLoadPrevious}
-            disabled={offset === 0 || loading}
-          >
-            Previous
-          </button>
-          <span className="page-info">
-            Showing {offset + 1} - {offset + games.length}
-          </span>
-          <button
-            onClick={handleLoadMore}
-            disabled={loading || games.length < limit}
-          >
-            Next
-          </button>
-        </div>
+        <Pagination
+          offset={offset}
+          limit={limit}
+          totalVisible={games.length}
+          loading={loading}
+          onPrevious={handleLoadPrevious}
+          onNext={handleLoadMore}
+        />
       </div>
 
       {selectedGameId && (
@@ -177,6 +149,12 @@ const GameList: React.FC = () => {
           onClose={() => setSelectedGameId(null)}
         />
       )}
+
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        onSuccess={handleAuthSuccess}
+      />
     </div>
   );
 };

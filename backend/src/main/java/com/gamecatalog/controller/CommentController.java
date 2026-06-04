@@ -1,12 +1,12 @@
 package com.gamecatalog.controller;
 
+import com.gamecatalog.dto.CommentCreateDTO;
 import com.gamecatalog.entity.Comment;
 import com.gamecatalog.service.ProductService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 
 // Handles comment read and create operations for products.
 @RestController
@@ -30,10 +30,10 @@ public class CommentController {
     @PostMapping("/{productId}/comments")
     public ResponseEntity<Comment> createComment(
             @PathVariable Long productId,
-            @RequestBody Map<String, Object> payload) {
+            @RequestBody CommentCreateDTO payload) {
 
-        String description = (String) payload.get("description");
-        Integer creatorUserId = (Integer) payload.get("creatorUserId");
+        String description = payload.getDescription();
+        Integer creatorUserId = payload.getCreatorUserId();
 
         Comment comment = productService.createComment(
             productId,

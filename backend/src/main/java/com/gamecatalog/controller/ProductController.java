@@ -1,14 +1,15 @@
 package com.gamecatalog.controller;
 
+import com.gamecatalog.dto.CommentDTO;
+import com.gamecatalog.dto.ProductDTO;
+import com.gamecatalog.dto.ProductWithCommentsDTO;
 import com.gamecatalog.entity.Comment;
 import com.gamecatalog.entity.Product;
 import com.gamecatalog.service.ProductService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 // Returns product details together with its comments.
@@ -24,7 +25,7 @@ public class ProductController {
 
     // Uses the external IGDB id from the frontend and returns a flat response.
     @GetMapping("/{id}")
-    public ResponseEntity<Map<String, Object>> getProductWithComments(@PathVariable Long id) {
+    public ResponseEntity<ProductWithCommentsDTO> getProductWithComments(@PathVariable Long id) {
         Product product = productService.getProductByIgdbId(id);
 
         if (product == null) {
@@ -33,29 +34,29 @@ public class ProductController {
 
         List<Comment> comments = productService.getCommentsByProductId(product.getId());
 
-        Map<String, Object> response = new HashMap<>();
+        ProductWithCommentsDTO response = new ProductWithCommentsDTO();
         
-        Map<String, Object> productMap = new HashMap<>();
-        productMap.put("id", product.getId());
-        productMap.put("title", product.getTitle());
-        productMap.put("description", product.getDescription());
-        productMap.put("imageUrl", product.getImageUrl());
-        productMap.put("creationDate", product.getCreationDate());
-        productMap.put("isDeleted", product.getIsDeleted());
-        productMap.put("creatorUserId", product.getCreatorUserId());
+        ProductDTO productDTO = new ProductDTO();
+        productDTO.setId(product.getId());
+        productDTO.setTitle(product.getTitle());
+        productDTO.setDescription(product.getDescription());
+        productDTO.setImageUrl(product.getImageUrl());
+        productDTO.setCreationDate(product.getCreationDate());
+        productDTO.setIsDeleted(product.getIsDeleted());
+        productDTO.setCreatorUserId(product.getCreatorUserId());
         
-        List<Map<String, Object>> commentMaps = comments.stream().map(comment -> {
-            Map<String, Object> commentMap = new HashMap<>();
-            commentMap.put("id", comment.getId());
-            commentMap.put("description", comment.getDescription());
-            commentMap.put("creationDate", comment.getCreationDate());
-            commentMap.put("isDeleted", comment.getIsDeleted());
-            commentMap.put("creatorUserId", comment.getCreatorUserId());
-            return commentMap;
+        List<CommentDTO> commentDTOs = comments.stream().map(comment -> {
+            CommentDTO commentDTO = new CommentDTO();
+            commentDTO.setId(comment.getId());
+            commentDTO.setDescription(comment.getDescription());
+            commentDTO.setCreationDate(comment.getCreationDate());
+            commentDTO.setIsDeleted(comment.getIsDeleted());
+            commentDTO.setCreatorUserId(comment.getCreatorUserId());
+            return commentDTO;
         }).collect(Collectors.toList());
         
-        response.put("product", productMap);
-        response.put("comments", commentMaps);
+        response.setProduct(productDTO);
+        response.setComments(commentDTOs);
 
         return ResponseEntity.ok(response);
     }
