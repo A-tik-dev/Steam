@@ -1,0 +1,10 @@
+# Backend runtime artifacts
+backend/*.log
+backend/*.pid
+
+# Build artifacts
+backend/target/
+
+# Frontend dependencies/build
+frontend/node_modules/
+frontend/dist/

@@ -1,0 +1,93 @@
+/* Styles for legacy game modal with inline comments form. */
+.game-modal-content {
+  background: #fff;
+  border-radius: 8px;
+  width: min(900px, 90%);
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  border: 1px solid #ddd;
+}
+
+.game-modal-header {
+  display: flex;
+  gap: 16px;
+  padding: 16px;
+  border-bottom: 1px solid #ddd;
+}
+
+.game-modal-image {
+  flex-shrink: 0;
+  width: 240px;
+  height: 320px;
+  background: #eee;
+  overflow: hidden;
+  border-radius: 6px;
+}
+
+.game-modal-info {
+  flex: 1;
+}
+
+.game-modal-info h2,
+.comments-section h3 {
+  margin-bottom: 12px;
+}
+
+.game-modal-info .game-description {
+  margin-top: 12px;
+}
+
+.comments-section {
+  padding: 16px;
+}
+
+.comment-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.comment-form textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+.comment-form button {
+  align-self: flex-end;
+}
+
+.comments-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.comment-item {
+  padding: 12px;
+}
+
+.comment-header {
+  margin-bottom: 8px;
+}
+
+.comment-author {
+  font-weight: 600;
+}
+
+.comment-date {
+  color: #777;
+  font-size: 0.9rem;
+}
+
+@media (max-width: 768px) {
+  .game-modal-header {
+    flex-direction: column;
+  }
+
+  .game-modal-image {
+    width: 100%;
+    height: 240px;
+  }
+}
