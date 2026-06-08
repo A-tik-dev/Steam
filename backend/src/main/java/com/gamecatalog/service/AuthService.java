@@ -33,12 +33,15 @@ public class AuthService {
     }
 
     public AuthResponseDTO register(RegisterRequestDTO request) {
-        if (userRepository.existsByUsername(request.getUsername())) {
+        String username = normalizeUsername(request.getUsername());
+        validateCredentials(username, request.getPassword());
+
+        if (userRepository.existsByUsername(username)) {
             throw new RuntimeException("Username is already taken");
         }
 
         User user = new User(
-                request.getUsername(),
+                username,
                 passwordEncoder.encode(request.getPassword()),
                 "ROLE_USER"
         );
@@ -50,15 +53,28 @@ public class AuthService {
     }
 
     public AuthResponseDTO login(AuthRequestDTO request) {
+        String username = normalizeUsername(request.getUsername());
+        validateCredentials(username, request.getPassword());
+
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
-                        request.getUsername(),
+                        username,
                         request.getPassword()
                 )
         );
 
-        UserDetails userDetails = userDetailsService.loadUserByUsername(request.getUsername());
+        UserDetails userDetails = userDetailsService.loadUserByUsername(username);
         String jwtToken = jwtService.generateToken(userDetails);
-        return new AuthResponseDTO(jwtToken, request.getUsername());
+        return new AuthResponseDTO(jwtToken, username);
+    }
+
+    private String normalizeUsername(String username) {
+        return username == null ? "" : username.trim();
+    }
+
+    private void validateCredentials(String username, String password) {
+        if (username.isBlank() || password == null || password.isBlank()) {
+            throw new IllegalArgumentException("Username and password are required");
+        }
     }
 }

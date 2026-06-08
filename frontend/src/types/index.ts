@@ -25,6 +25,7 @@ export interface Comment {
   creationDate: string;
   isDeleted: boolean;
   creatorUserId: number;
+  creatorUsername: string;
 }
 
 // EN: Locally persisted product entity created from IGDB data.

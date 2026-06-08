@@ -1,17 +1,25 @@
 package com.gamecatalog.service;
 
+import com.gamecatalog.dto.CommentDTO;
 import com.gamecatalog.dto.GameDTO;
 import com.gamecatalog.entity.Comment;
 import com.gamecatalog.entity.Product;
+import com.gamecatalog.entity.User;
 import com.gamecatalog.repository.CommentRepository;
 import com.gamecatalog.repository.ProductRepository;
+import com.gamecatalog.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
+import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 // Manages local products and comments.
 @Service
@@ -19,9 +27,19 @@ public class ProductService {
 
     private final ProductRepository productRepository;
     private final CommentRepository commentRepository;
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
     private final Random random = new Random();
 
     private static final Long SYSTEM_USER_ID = 1L;
+    private static final String[] MOCK_REVIEWER_USERNAMES = {
+        "AlexReview",
+        "PixelNina",
+        "RetroMax",
+        "IndieVika",
+        "QuestLeo",
+        "ArcadeMila"
+    };
 
     private static final String[] POSITIVE_REVIEWS = {
         "Absolutely amazing game! The story kept me hooked from start to finish.",
@@ -62,9 +80,14 @@ public class ProductService {
         "Disappointing compared to previous entries in the series."
     };
 
-    public ProductService(ProductRepository productRepository, CommentRepository commentRepository) {
+    private static final Set<String> SEED_REVIEW_TEXTS = buildSeedReviewTexts();
+
+    public ProductService(ProductRepository productRepository, CommentRepository commentRepository,
+                          UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.productRepository = productRepository;
         this.commentRepository = commentRepository;
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     // Saves a game if it does not exist yet, then seeds starter reviews.
@@ -72,6 +95,7 @@ public class ProductService {
     public Product saveGameWithReviews(GameDTO gameDTO) {
         Product existingProduct = productRepository.findByIgdbId(gameDTO.getId());
         if (existingProduct != null) {
+            repairLegacySeededReviewOwners(existingProduct.getId());
             return existingProduct;
         }
 
@@ -86,26 +110,73 @@ public class ProductService {
         Product savedProduct = productRepository.save(product);
 
         int reviewCount = 2 + random.nextInt(2);
-        List<Comment> comments = generateMockReviews(savedProduct, gameDTO.getRating(), reviewCount);
+        List<Comment> comments = generateMockReviews(
+                savedProduct,
+                gameDTO.getRating(),
+                reviewCount,
+                getOrCreateMockReviewers()
+        );
         commentRepository.saveAll(comments);
 
         return savedProduct;
     }
 
     // Generates fake starter comments for a product.
-    private List<Comment> generateMockReviews(Product product, Double rating, int count) {
+    private List<Comment> generateMockReviews(Product product, Double rating, int count, List<User> mockReviewers) {
         List<Comment> reviews = new ArrayList<>();
 
         for (int i = 0; i < count; i++) {
             String reviewText = selectReviewBasedOnRating(rating);
             LocalDateTime reviewDate = generateRandomRecentDate();
+            User reviewer = mockReviewers.get(random.nextInt(mockReviewers.size()));
 
-            Comment comment = new Comment(reviewText, SYSTEM_USER_ID, product);
+            Comment comment = new Comment(reviewText, reviewer.getId(), product);
             comment.setCreationDate(reviewDate);
             reviews.add(comment);
         }
 
         return reviews;
+    }
+
+    // Keeps seeded review authors separate from real registered users.
+    private List<User> getOrCreateMockReviewers() {
+        List<User> reviewers = new ArrayList<>();
+
+        for (String username : MOCK_REVIEWER_USERNAMES) {
+            User reviewer = userRepository.findByUsernameAndIsDeletedFalse(username)
+                    .orElseGet(() -> userRepository.save(new User(
+                            username,
+                            passwordEncoder.encode(UUID.randomUUID().toString()),
+                            "ROLE_REVIEWER"
+                    )));
+            reviewers.add(reviewer);
+        }
+
+        return reviewers;
+    }
+
+    // Older seeded comments were stored with creator_user_id=1, which can be a real user.
+    private void repairLegacySeededReviewOwners(Long productId) {
+        List<Comment> legacySeededReviews = commentRepository.findByProductIdAndIsDeletedFalse(productId)
+                .stream()
+                .filter(comment -> SYSTEM_USER_ID.equals(comment.getCreatorUserId()))
+                .filter(comment -> isSeedReviewText(comment.getDescription()))
+                .collect(Collectors.toList());
+
+        if (legacySeededReviews.isEmpty()) {
+            return;
+        }
+
+        List<User> mockReviewers = getOrCreateMockReviewers();
+        for (Comment comment : legacySeededReviews) {
+            User reviewer = mockReviewers.get(random.nextInt(mockReviewers.size()));
+            comment.setCreatorUserId(reviewer.getId());
+        }
+        commentRepository.saveAll(legacySeededReviews);
+    }
+
+    private boolean isSeedReviewText(String description) {
+        return SEED_REVIEW_TEXTS.contains(description);
     }
 
     // Picks a review tone based on the game rating.
@@ -150,14 +221,66 @@ public class ProductService {
         return commentRepository.findByProductIdAndIsDeletedFalse(productId);
     }
 
+    // Returns non-deleted comments for a product as DTOs with username resolved from users table.
     @Transactional
+    public List<CommentDTO> getCommentsAsDTOByProductId(Long productId) {
+        repairLegacySeededReviewOwners(productId);
+        List<Comment> comments = commentRepository.findByProductIdAndIsDeletedFalse(productId);
+        return comments.stream().map(this::toCommentDTO).collect(Collectors.toList());
+    }
+
+    private static Set<String> buildSeedReviewTexts() {
+        Set<String> texts = new HashSet<>();
+        addAll(texts, POSITIVE_REVIEWS);
+        addAll(texts, MIXED_REVIEWS);
+        addAll(texts, CRITICAL_REVIEWS);
+        return texts;
+    }
+
+    private static void addAll(Set<String> texts, String[] source) {
+        for (String text : source) {
+            texts.add(text);
+        }
+    }
+
+    // Converts a Comment entity to a DTO, resolving the creator's username.
+    private CommentDTO toCommentDTO(Comment comment) {
+        CommentDTO dto = new CommentDTO();
+        dto.setId(comment.getId());
+        dto.setDescription(comment.getDescription());
+        dto.setCreationDate(comment.getCreationDate());
+        dto.setIsDeleted(comment.getIsDeleted());
+        dto.setCreatorUserId(comment.getCreatorUserId());
+
+        String username = userRepository.findById(comment.getCreatorUserId())
+                .map(User::getUsername)
+                .orElse("System");
+        dto.setCreatorUsername(username);
+
+        return dto;
+    }
+
     // Creates a comment for an existing product.
-    public Comment createComment(Long productId, String description, Long creatorUserId) {
+    @Transactional
+    public CommentDTO createComment(Long productId, String description, Long creatorUserId) {
         Product product = productRepository.findById(productId)
             .orElseThrow(() -> new RuntimeException("Product not found with id: " + productId));
 
         Long userId = creatorUserId != null ? creatorUserId : SYSTEM_USER_ID;
         Comment comment = new Comment(description, userId, product);
-        return commentRepository.save(comment);
+        Comment saved = commentRepository.save(comment);
+        return toCommentDTO(saved);
+    }
+
+    // Soft-deletes a comment only if it belongs to the requesting user.
+    @Transactional
+    public boolean deleteCommentByOwner(Long commentId, Long requestingUserId) {
+        return commentRepository.findByIdAndCreatorUserIdAndIsDeletedFalse(commentId, requestingUserId)
+                .map(comment -> {
+                    comment.setIsDeleted(true);
+                    commentRepository.save(comment);
+                    return true;
+                })
+                .orElse(false);
     }
 }

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { gameService } from '../services/api';
+import { AUTH_CHANGED_EVENT, authService, gameService } from '../services/api';
 import { Game } from '../types';
 import GameDetails from './GameDetails';
 import GameCard from './GameCard';
@@ -8,8 +8,6 @@ import Pagination from './Pagination';
 import AuthModal from './AuthModal';
 import './GameList.css';
 
-// EN: Main catalog container. Controls loading, searching, pagination, and details modal opening.
-// RU: Главный контейнер каталога. Управляет загрузкой, поиском, пагинацией и открытием модалки деталей.
 const GameList: React.FC = () => {
   const [games, setGames] = useState<Game[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -20,9 +18,8 @@ const GameList: React.FC = () => {
   const [selectedGameId, setSelectedGameId] = useState<number | null>(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(false);
   const [username, setUsername] = useState<string | null>(localStorage.getItem('username'));
+  const [authChecking, setAuthChecking] = useState<boolean>(true);
 
-  // EN: Loads one page of popular games from backend and updates UI state atomically.
-  // RU: Загружает одну страницу популярных игр с backend и атомарно обновляет состояние UI.
   const fetchGames = async () => {
     try {
       setLoading(true);
@@ -36,8 +33,6 @@ const GameList: React.FC = () => {
     }
   };
 
-  // EN: Executes server-side search; if query is empty, resets to default popular feed.
-  // RU: Выполняет серверный поиск; если строка пустая, возвращает стандартную ленту популярных игр.
   const handleSearch = async () => {
     if (!searchQuery.trim()) {
       fetchGames();
@@ -56,20 +51,50 @@ const GameList: React.FC = () => {
     }
   };
 
-  // EN: Re-fetches list whenever page size or current offset changes.
-  // RU: Перезагружает список при изменении размера страницы или текущего смещения.
   useEffect(() => {
     fetchGames();
   }, [limit, offset]);
 
-  // EN: Moves cursor forward by current page size.
-  // RU: Сдвигает курсор вперед на размер текущей страницы.
+  useEffect(() => {
+    const syncCurrentUser = async () => {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setUsername(null);
+        setAuthChecking(false);
+        return;
+      }
+
+      const user = await authService.getCurrentUser();
+      if (user) {
+        localStorage.setItem('username', user.username);
+        setUsername(user.username);
+      } else {
+        localStorage.removeItem('token');
+        localStorage.removeItem('username');
+        setUsername(null);
+      }
+      setAuthChecking(false);
+    };
+
+    const handleAuthChange = () => {
+      const token = localStorage.getItem('token');
+      setUsername(token ? localStorage.getItem('username') : null);
+    };
+
+    syncCurrentUser();
+    window.addEventListener(AUTH_CHANGED_EVENT, handleAuthChange);
+    window.addEventListener('storage', handleAuthChange);
+
+    return () => {
+      window.removeEventListener(AUTH_CHANGED_EVENT, handleAuthChange);
+      window.removeEventListener('storage', handleAuthChange);
+    };
+  }, []);
+
   const handleLoadMore = () => {
     setOffset(offset + limit);
   };
 
-  // EN: Moves cursor backward but clamps value to zero to avoid negative offsets.
-  // RU: Сдвигает курсор назад, но ограничивает значение нулем, чтобы не уйти в отрицательное смещение.
   const handleLoadPrevious = () => {
     setOffset(Math.max(0, offset - limit));
   };
@@ -78,10 +103,12 @@ const GameList: React.FC = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('username');
     setUsername(null);
+    window.dispatchEvent(new Event(AUTH_CHANGED_EVENT));
   };
 
   const handleAuthSuccess = (_token: string, newUsername: string) => {
     setUsername(newUsername);
+    window.dispatchEvent(new Event(AUTH_CHANGED_EVENT));
   };
 
   if (loading && games.length === 0) {
@@ -96,11 +123,16 @@ const GameList: React.FC = () => {
     <div className="game-list-container">
       <header className="header">
         <div className="header-top">
-          <h1>🎮 Popular Games from IGDB</h1>
+          <div className="header-title">
+            <span className="header-kicker">IGDB Catalog</span>
+            <h1>Popular Games</h1>
+          </div>
           <div className="auth-section">
-            {username ? (
+            {authChecking ? (
+              <span className="auth-status">Checking session...</span>
+            ) : username ? (
               <div className="user-info">
-                <span>Welcome, {username}!</span>
+                <span>Signed in as <strong>{username}</strong></span>
                 <button onClick={handleLogout} className="logout-button">Logout</button>
               </div>
             ) : (
@@ -122,7 +154,7 @@ const GameList: React.FC = () => {
       </header>
 
       <div className="all-games-section">
-        <h2>📚 Games ({games.length})</h2>
+        <h2>Games ({games.length})</h2>
         <div className="games-grid">
           {games.map((game) => (
             <GameCard

@@ -3,14 +3,12 @@ package com.gamecatalog.controller;
 import com.gamecatalog.dto.CommentDTO;
 import com.gamecatalog.dto.ProductDTO;
 import com.gamecatalog.dto.ProductWithCommentsDTO;
-import com.gamecatalog.entity.Comment;
 import com.gamecatalog.entity.Product;
 import com.gamecatalog.service.ProductService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 // Returns product details together with its comments.
 @RestController
@@ -23,7 +21,7 @@ public class ProductController {
         this.productService = productService;
     }
 
-    // Uses the external IGDB id from the frontend and returns a flat response.
+    // Uses the external IGDB id from the frontend and returns product + comments with usernames.
     @GetMapping("/{id}")
     public ResponseEntity<ProductWithCommentsDTO> getProductWithComments(@PathVariable Long id) {
         Product product = productService.getProductByIgdbId(id);
@@ -32,10 +30,9 @@ public class ProductController {
             return ResponseEntity.notFound().build();
         }
 
-        List<Comment> comments = productService.getCommentsByProductId(product.getId());
+        // Use DTO method so creatorUsername is always resolved from the users table.
+        List<CommentDTO> commentDTOs = productService.getCommentsAsDTOByProductId(product.getId());
 
-        ProductWithCommentsDTO response = new ProductWithCommentsDTO();
-        
         ProductDTO productDTO = new ProductDTO();
         productDTO.setId(product.getId());
         productDTO.setTitle(product.getTitle());
@@ -44,17 +41,8 @@ public class ProductController {
         productDTO.setCreationDate(product.getCreationDate());
         productDTO.setIsDeleted(product.getIsDeleted());
         productDTO.setCreatorUserId(product.getCreatorUserId());
-        
-        List<CommentDTO> commentDTOs = comments.stream().map(comment -> {
-            CommentDTO commentDTO = new CommentDTO();
-            commentDTO.setId(comment.getId());
-            commentDTO.setDescription(comment.getDescription());
-            commentDTO.setCreationDate(comment.getCreationDate());
-            commentDTO.setIsDeleted(comment.getIsDeleted());
-            commentDTO.setCreatorUserId(comment.getCreatorUserId());
-            return commentDTO;
-        }).collect(Collectors.toList());
-        
+
+        ProductWithCommentsDTO response = new ProductWithCommentsDTO();
         response.setProduct(productDTO);
         response.setComments(commentDTOs);
 

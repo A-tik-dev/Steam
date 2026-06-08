@@ -6,6 +6,7 @@ public class CommentDTO {
     private java.time.LocalDateTime creationDate;
     private Boolean isDeleted;
     private Long creatorUserId;
+    private String creatorUsername;
 
     public Long getId() {
         return id;
@@ -45,5 +46,13 @@ public class CommentDTO {
 
     public void setCreatorUserId(Long creatorUserId) {
         this.creatorUserId = creatorUserId;
+    }
+
+    public String getCreatorUsername() {
+        return creatorUsername;
+    }
+
+    public void setCreatorUsername(String creatorUsername) {
+        this.creatorUsername = creatorUsername;
     }
 }

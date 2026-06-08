@@ -24,7 +24,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
         placeholder="Search games..."
         value={searchQuery}
         onChange={(e) => setSearchQuery(e.target.value)}
-        onKeyPress={(e) => e.key === 'Enter' && onSearch()}
+        onKeyDown={(e) => e.key === 'Enter' && onSearch()}
       />
       <button onClick={onSearch}>Search</button>
       <button onClick={onShowPopular}>Show Popular</button>

@@ -54,7 +54,7 @@ const GameModal: React.FC<GameModalProps> = ({ game, isOpen, onClose, currentUse
 
     setLoading(true);
     try {
-      await commentService.createComment(game.id, newComment, null);
+      await commentService.createComment(game.id, newComment);
       setNewComment('');
       loadComments();
     } catch (err) {

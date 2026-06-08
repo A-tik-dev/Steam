@@ -8,11 +8,7 @@ interface GameCardProps {
 
 const GameCard: React.FC<GameCardProps> = ({ game, onClick }) => {
   return (
-    <div
-      className="game-card"
-      onClick={() => onClick(game.id)}
-      style={{ cursor: 'pointer' }}
-    >
+    <button className="game-card" onClick={() => onClick(game.id)} type="button">
       <div className="game-image">
         {game.cover?.url ? (
           <img src={game.cover.url} alt={game.name} />
@@ -37,11 +33,11 @@ const GameCard: React.FC<GameCardProps> = ({ game, onClick }) => {
         )}
         {game.rating && (
           <div className="game-footer">
-            <span className="rating">⭐ {game.rating.toFixed(1)}</span>
+            <span className="rating">Rating {game.rating.toFixed(1)}</span>
           </div>
         )}
       </div>
-    </div>
+    </button>
   );
 };
 

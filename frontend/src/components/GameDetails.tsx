@@ -1,43 +1,79 @@
-import React, { useEffect, useState } from 'react';
-import { productService } from '../services/api';
-import { ProductWithComments } from '../types';
+import React, { useCallback, useEffect, useState } from 'react';
+import { AUTH_CHANGED_EVENT, authService, commentService, productService } from '../services/api';
+import { Comment, ProductWithComments } from '../types';
 import './GameDetails.css';
 
-// EN: Input contract for details modal.
-// RU: Входной контракт для модального окна деталей.
 interface GameDetailsProps {
   productId: number;
   onClose: () => void;
 }
 
-// EN: Modal that shows local product details and related comments.
-// RU: Модалка, показывающая локальные детали продукта и связанные комментарии.
 const GameDetails: React.FC<GameDetailsProps> = ({ productId, onClose }) => {
   const [data, setData] = useState<ProductWithComments | null>(null);
+  const [comments, setComments] = useState<Comment[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [newComment, setNewComment] = useState<string>('');
+  const [submitting, setSubmitting] = useState<boolean>(false);
+  const [currentUserId, setCurrentUserId] = useState<number | null>(null);
+  const [currentUsername, setCurrentUsername] = useState<string | null>(null);
+  const [hasToken, setHasToken] = useState<boolean>(() => Boolean(localStorage.getItem('token')));
 
-  // EN: Loads aggregate backend payload: product metadata + comments list.
-  // RU: Загружает агрегированный payload backend: метаданные продукта + список комментариев.
-  useEffect(() => {
-    const fetchGameDetails = async () => {
-      try {
-        setLoading(true);
-        const result = await productService.getProductWithComments(productId);
-        setData(result);
-        setError(null);
-      } catch (err: any) {
-        setError(err.message || 'Failed to fetch game details');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchGameDetails();
+  const fetchGameDetails = useCallback(async () => {
+    try {
+      setLoading(true);
+      const result = await productService.getProductWithComments(productId);
+      setData(result);
+      setComments(result.comments);
+      setError(null);
+    } catch (err: any) {
+      setError(err.message || 'Failed to fetch game details');
+    } finally {
+      setLoading(false);
+    }
   }, [productId]);
 
-  // EN: Converts ISO date into a user-friendly relative label (Today, 2 weeks ago, etc.).
-  // RU: Преобразует ISO-дату в удобную относительную метку (Сегодня, 2 недели назад и т.д.).
+  const fetchCurrentUser = useCallback(async () => {
+    const token = localStorage.getItem('token');
+    setHasToken(Boolean(token));
+
+    if (!token) {
+      setCurrentUserId(null);
+      setCurrentUsername(null);
+      return;
+    }
+
+    const user = await authService.getCurrentUser();
+    if (user) {
+      setCurrentUserId(user.id);
+      setCurrentUsername(user.username);
+      return;
+    }
+
+    setHasToken(false);
+    setCurrentUserId(null);
+    setCurrentUsername(null);
+  }, []);
+
+  useEffect(() => {
+    fetchGameDetails();
+    fetchCurrentUser();
+  }, [fetchGameDetails, fetchCurrentUser]);
+
+  useEffect(() => {
+    const handleAuthChange = () => {
+      fetchCurrentUser();
+    };
+
+    window.addEventListener(AUTH_CHANGED_EVENT, handleAuthChange);
+    window.addEventListener('storage', handleAuthChange);
+
+    return () => {
+      window.removeEventListener(AUTH_CHANGED_EVENT, handleAuthChange);
+      window.removeEventListener('storage', handleAuthChange);
+    };
+  }, [fetchCurrentUser]);
+
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     const now = new Date();
@@ -52,10 +88,38 @@ const GameDetails: React.FC<GameDetailsProps> = ({ productId, onClose }) => {
     return date.toLocaleDateString();
   };
 
-  // EN: Temporary visual rating used only for UI presentation, not persisted in backend.
-  // RU: Временный визуальный рейтинг только для отображения в UI, в backend не сохраняется.
-  const getRandomRating = () => {
-    return (7 + Math.random() * 3).toFixed(1);
+  const handleSubmitComment = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newComment.trim()) return;
+
+    const productRecordId = data?.product.id;
+    if (!productRecordId) {
+      alert('Failed to post comment. Product is not loaded yet.');
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const created = await commentService.createComment(productRecordId, newComment.trim());
+      setComments(prev => [...prev, created]);
+      setNewComment('');
+      await fetchCurrentUser();
+    } catch {
+      alert('Failed to post comment. Make sure you are logged in.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleDeleteComment = async (commentId: number) => {
+    if (!window.confirm('Delete your comment?')) return;
+
+    try {
+      await commentService.deleteComment(commentId);
+      setComments(prev => prev.filter(comment => comment.id !== commentId));
+    } catch {
+      alert('Failed to delete comment.');
+    }
   };
 
   if (loading) {
@@ -79,12 +143,15 @@ const GameDetails: React.FC<GameDetailsProps> = ({ productId, onClose }) => {
     );
   }
 
-  const { product, comments } = data;
+  const { product } = data;
+  const canComment = hasToken && currentUserId !== null;
 
   return (
     <div className="game-details-overlay" onClick={onClose}>
       <div className="game-details-modal" onClick={(e) => e.stopPropagation()}>
-        <button onClick={onClose} className="close-button-top">✕</button>
+        <button onClick={onClose} className="close-button-top" aria-label="Close details">
+          x
+        </button>
 
         <div className="game-header">
           {product.imageUrl && (
@@ -99,30 +166,64 @@ const GameDetails: React.FC<GameDetailsProps> = ({ productId, onClose }) => {
         <div className="reviews-section">
           <h2>User Reviews ({comments.length})</h2>
 
+          {canComment ? (
+            <form className="comment-form" onSubmit={handleSubmitComment}>
+              <p className="comment-form-label">
+                Commenting as <strong>{currentUsername}</strong>
+              </p>
+              <textarea
+                className="comment-textarea"
+                placeholder="Write your review..."
+                value={newComment}
+                onChange={(e) => setNewComment(e.target.value)}
+                rows={3}
+                required
+              />
+              <button type="submit" className="comment-submit-btn" disabled={submitting}>
+                {submitting ? 'Posting...' : 'Post Review'}
+              </button>
+            </form>
+          ) : (
+            <p className="login-prompt">
+              <strong>Log in</strong> to leave a review.
+            </p>
+          )}
+
           {comments.length === 0 ? (
             <p className="no-reviews">No reviews yet. Be the first to review!</p>
           ) : (
             <div className="reviews-list">
-              {comments.map((comment) => (
-                <div key={comment.id} className="review-card">
-                  <div className="review-header">
-                    <div className="reviewer-info">
-                      <div className="reviewer-avatar">
-                        {String.fromCharCode(65 + Math.floor(Math.random() * 26))}
+              {comments.map((comment) => {
+                const isOwner = currentUserId !== null && Number(comment.creatorUserId) === Number(currentUserId);
+                return (
+                  <div key={comment.id} className={`review-card ${isOwner ? 'own-review' : ''}`}>
+                    <div className="review-header">
+                      <div className="reviewer-info">
+                        <div className="reviewer-avatar">
+                          {(comment.creatorUsername || 'S').charAt(0).toUpperCase()}
+                        </div>
+                        <div className="reviewer-details">
+                          <span className="reviewer-name">
+                            {comment.creatorUsername || 'System'}
+                            {isOwner && <span className="you-badge"> (You)</span>}
+                          </span>
+                          <span className="review-date">{formatDate(comment.creationDate)}</span>
+                        </div>
                       </div>
-                      <div className="reviewer-details">
-                        <span className="reviewer-name">Gamer{comment.creatorUserId}</span>
-                        <span className="review-date">{formatDate(comment.creationDate)}</span>
-                      </div>
+                      {isOwner && (
+                        <button
+                          className="delete-comment-btn"
+                          onClick={() => handleDeleteComment(comment.id)}
+                          title="Delete your comment"
+                        >
+                          Delete
+                        </button>
+                      )}
                     </div>
-                    <div className="review-rating">
-                      <span className="rating-number">{getRandomRating()}</span>
-                      <span className="rating-max">/10</span>
-                    </div>
+                    <p className="review-text">{comment.description}</p>
                   </div>
-                  <p className="review-text">{comment.description}</p>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
