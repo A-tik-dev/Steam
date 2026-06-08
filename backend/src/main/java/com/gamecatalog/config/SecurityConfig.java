@@ -9,6 +9,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -34,12 +35,17 @@ public class SecurityConfig {
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                .requestMatchers("/api/auth/**", "/api/games/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/products/**").permitAll()
-                .requestMatchers(HttpMethod.POST, "/api/products/*/comments").authenticated()
-                .requestMatchers(HttpMethod.DELETE, "/api/products/comments/*").authenticated()
-                .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
+                .requestMatchers(path(HttpMethod.OPTIONS, "/**")).permitAll()
+                .requestMatchers(path("/api/auth/**")).permitAll()
+                .requestMatchers(path(HttpMethod.GET, "/api/games"), path(HttpMethod.GET, "/api/games/**")).permitAll()
+                .requestMatchers(path(HttpMethod.POST, "/api/products/*/comments")).authenticated()
+                .requestMatchers(path(HttpMethod.DELETE, "/api/products/comments/*")).authenticated()
+                .requestMatchers(path(HttpMethod.GET, "/api/products/*/favorite")).authenticated()
+                .requestMatchers(path(HttpMethod.POST, "/api/products/*/favorite")).authenticated()
+                .requestMatchers(path(HttpMethod.DELETE, "/api/products/*/favorite")).authenticated()
+                .requestMatchers(path("/api/profile/**")).authenticated()
+                .requestMatchers(path(HttpMethod.GET, "/api/products"), path(HttpMethod.GET, "/api/products/**")).permitAll()
+                .requestMatchers(path("/swagger-ui/**"), path("/v3/api-docs/**"), path("/swagger-ui.html")).permitAll()
                 .anyRequest().authenticated()
             )
             .sessionManagement(session -> session
@@ -48,6 +54,14 @@ public class SecurityConfig {
             .authenticationProvider(authenticationProvider)
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
+    }
+
+    private static AntPathRequestMatcher path(String pattern) {
+        return new AntPathRequestMatcher(pattern);
+    }
+
+    private static AntPathRequestMatcher path(HttpMethod method, String pattern) {
+        return new AntPathRequestMatcher(pattern, method.name());
     }
 
     @Bean

@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Game, ProductWithComments } from '../types';
+import { CurrentUser, FavoriteStatus, Game, ProductWithComments, UserProfile } from '../types';
 
 interface AuthResponse {
   token: string;
@@ -104,6 +104,34 @@ export const commentService = {
   },
 };
 
+export const favoriteService = {
+  getStatus: async (productId: number): Promise<FavoriteStatus | null> => {
+    try {
+      const response = await api.get<FavoriteStatus>(`/products/${productId}/favorite`);
+      return response.data;
+    } catch {
+      return null;
+    }
+  },
+
+  addFavorite: async (productId: number): Promise<FavoriteStatus> => {
+    const response = await api.post<FavoriteStatus>(`/products/${productId}/favorite`);
+    return response.data;
+  },
+
+  removeFavorite: async (productId: number): Promise<FavoriteStatus> => {
+    const response = await api.delete<FavoriteStatus>(`/products/${productId}/favorite`);
+    return response.data;
+  },
+};
+
+export const profileService = {
+  getMyProfile: async (): Promise<UserProfile> => {
+    const response = await api.get<UserProfile>('/profile/me');
+    return response.data;
+  },
+};
+
 // EN: Authentication API group for login/registration flows in AuthModal.
 // RU: Группа API авторизации для сценариев входа/регистрации в AuthModal.
 export const authService = {
@@ -123,7 +151,7 @@ export const authService = {
 
   // EN: Returns the current logged-in user's id and username from JWT context.
   // RU: Возвращает id и username текущего залогиненного пользователя из JWT контекста.
-  getCurrentUser: async (): Promise<{ id: number; username: string; role: string } | null> => {
+  getCurrentUser: async (): Promise<CurrentUser | null> => {
     try {
       const response = await api.get('/auth/me');
       return response.data;

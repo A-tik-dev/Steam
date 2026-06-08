@@ -6,6 +6,7 @@ import GameCard from './GameCard';
 import SearchBar from './SearchBar';
 import Pagination from './Pagination';
 import AuthModal from './AuthModal';
+import ProfilePanel from './ProfilePanel';
 import './GameList.css';
 
 const GameList: React.FC = () => {
@@ -17,6 +18,7 @@ const GameList: React.FC = () => {
   const [offset, setOffset] = useState<number>(0);
   const [selectedGameId, setSelectedGameId] = useState<number | null>(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(false);
+  const [isProfileOpen, setIsProfileOpen] = useState<boolean>(false);
   const [username, setUsername] = useState<string | null>(localStorage.getItem('username'));
   const [authChecking, setAuthChecking] = useState<boolean>(true);
 
@@ -103,6 +105,7 @@ const GameList: React.FC = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('username');
     setUsername(null);
+    setIsProfileOpen(false);
     window.dispatchEvent(new Event(AUTH_CHANGED_EVENT));
   };
 
@@ -133,6 +136,7 @@ const GameList: React.FC = () => {
             ) : username ? (
               <div className="user-info">
                 <span>Signed in as <strong>{username}</strong></span>
+                <button onClick={() => setIsProfileOpen(true)} className="profile-button">Profile</button>
                 <button onClick={handleLogout} className="logout-button">Logout</button>
               </div>
             ) : (
@@ -186,6 +190,10 @@ const GameList: React.FC = () => {
         isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}
         onSuccess={handleAuthSuccess}
+      />
+      <ProfilePanel
+        isOpen={isProfileOpen}
+        onClose={() => setIsProfileOpen(false)}
       />
     </div>
   );

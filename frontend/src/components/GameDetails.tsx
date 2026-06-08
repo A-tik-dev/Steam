@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { AUTH_CHANGED_EVENT, authService, commentService, productService } from '../services/api';
+import { AUTH_CHANGED_EVENT, authService, commentService, favoriteService, productService } from '../services/api';
 import { Comment, ProductWithComments } from '../types';
 import './GameDetails.css';
 
@@ -18,6 +18,8 @@ const GameDetails: React.FC<GameDetailsProps> = ({ productId, onClose }) => {
   const [currentUserId, setCurrentUserId] = useState<number | null>(null);
   const [currentUsername, setCurrentUsername] = useState<string | null>(null);
   const [hasToken, setHasToken] = useState<boolean>(() => Boolean(localStorage.getItem('token')));
+  const [isFavorite, setIsFavorite] = useState<boolean>(false);
+  const [favoriteLoading, setFavoriteLoading] = useState<boolean>(false);
 
   const fetchGameDetails = useCallback(async () => {
     try {
@@ -55,10 +57,27 @@ const GameDetails: React.FC<GameDetailsProps> = ({ productId, onClose }) => {
     setCurrentUsername(null);
   }, []);
 
+  const fetchFavoriteStatus = useCallback(async (productRecordId: number) => {
+    if (!localStorage.getItem('token')) {
+      setIsFavorite(false);
+      return;
+    }
+
+    const status = await favoriteService.getStatus(productRecordId);
+    setIsFavorite(Boolean(status?.favorite));
+  }, []);
+
   useEffect(() => {
     fetchGameDetails();
     fetchCurrentUser();
   }, [fetchGameDetails, fetchCurrentUser]);
+
+  useEffect(() => {
+    const productRecordId = data?.product.id;
+    if (productRecordId) {
+      fetchFavoriteStatus(productRecordId);
+    }
+  }, [data?.product.id, fetchFavoriteStatus, currentUserId]);
 
   useEffect(() => {
     const handleAuthChange = () => {
@@ -122,6 +141,23 @@ const GameDetails: React.FC<GameDetailsProps> = ({ productId, onClose }) => {
     }
   };
 
+  const handleToggleFavorite = async () => {
+    const productRecordId = data?.product.id;
+    if (!productRecordId || !canComment) return;
+
+    setFavoriteLoading(true);
+    try {
+      const status = isFavorite
+        ? await favoriteService.removeFavorite(productRecordId)
+        : await favoriteService.addFavorite(productRecordId);
+      setIsFavorite(status.favorite);
+    } catch {
+      alert('Failed to update favorites. Make sure you are logged in.');
+    } finally {
+      setFavoriteLoading(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="game-details-overlay">
@@ -160,6 +196,15 @@ const GameDetails: React.FC<GameDetailsProps> = ({ productId, onClose }) => {
           <div className="game-header-info">
             <h1>{product.title}</h1>
             <p className="game-description">{product.description}</p>
+            {canComment && (
+              <button
+                className={`favorite-toggle ${isFavorite ? 'active' : ''}`}
+                onClick={handleToggleFavorite}
+                disabled={favoriteLoading}
+              >
+                {favoriteLoading ? 'Saving...' : isFavorite ? 'Remove Favorite' : 'Add Favorite'}
+              </button>
+            )}
           </div>
         </div>
 

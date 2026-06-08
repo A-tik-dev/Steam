@@ -1,9 +1,10 @@
 package com.gamecatalog.controller;
 
 import com.gamecatalog.dto.CommentDTO;
-import com.gamecatalog.dto.ProductDTO;
 import com.gamecatalog.dto.ProductWithCommentsDTO;
 import com.gamecatalog.entity.Product;
+import com.gamecatalog.mapper.ProductMapper;
+import com.gamecatalog.service.CommentService;
 import com.gamecatalog.service.ProductService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,9 +17,13 @@ import java.util.List;
 public class ProductController {
 
     private final ProductService productService;
+    private final CommentService commentService;
+    private final ProductMapper productMapper;
 
-    public ProductController(ProductService productService) {
+    public ProductController(ProductService productService, CommentService commentService, ProductMapper productMapper) {
         this.productService = productService;
+        this.commentService = commentService;
+        this.productMapper = productMapper;
     }
 
     // Uses the external IGDB id from the frontend and returns product + comments with usernames.
@@ -30,20 +35,10 @@ public class ProductController {
             return ResponseEntity.notFound().build();
         }
 
-        // Use DTO method so creatorUsername is always resolved from the users table.
-        List<CommentDTO> commentDTOs = productService.getCommentsAsDTOByProductId(product.getId());
-
-        ProductDTO productDTO = new ProductDTO();
-        productDTO.setId(product.getId());
-        productDTO.setTitle(product.getTitle());
-        productDTO.setDescription(product.getDescription());
-        productDTO.setImageUrl(product.getImageUrl());
-        productDTO.setCreationDate(product.getCreationDate());
-        productDTO.setIsDeleted(product.getIsDeleted());
-        productDTO.setCreatorUserId(product.getCreatorUserId());
+        List<CommentDTO> commentDTOs = commentService.getCommentsByProductId(product.getId());
 
         ProductWithCommentsDTO response = new ProductWithCommentsDTO();
-        response.setProduct(productDTO);
+        response.setProduct(productMapper.toDTO(product));
         response.setComments(commentDTOs);
 
         return ResponseEntity.ok(response);

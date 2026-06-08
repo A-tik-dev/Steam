@@ -2,10 +2,10 @@ package com.gamecatalog.controller;
 
 import com.gamecatalog.dto.CommentCreateDTO;
 import com.gamecatalog.dto.CommentDTO;
-import com.gamecatalog.repository.UserRepository;
-import com.gamecatalog.service.ProductService;
+import com.gamecatalog.entity.User;
+import com.gamecatalog.service.CommentService;
+import com.gamecatalog.service.CurrentUserService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -15,19 +15,18 @@ import java.util.List;
 @RequestMapping("/api/products")
 public class CommentController {
 
-    private final ProductService productService;
-    private final UserRepository userRepository;
+    private final CommentService commentService;
+    private final CurrentUserService currentUserService;
 
-    public CommentController(ProductService productService, UserRepository userRepository) {
-        this.productService = productService;
-        this.userRepository = userRepository;
+    public CommentController(CommentService commentService, CurrentUserService currentUserService) {
+        this.commentService = commentService;
+        this.currentUserService = currentUserService;
     }
 
     // Returns active comments (with usernames) for a product.
     @GetMapping("/{productId}/comments")
     public ResponseEntity<List<CommentDTO>> getCommentsByProductId(@PathVariable Long productId) {
-        List<CommentDTO> comments = productService.getCommentsAsDTOByProductId(productId);
-        return ResponseEntity.ok(comments);
+        return ResponseEntity.ok(commentService.getCommentsByProductId(productId));
     }
 
     // Creates a new comment; the creator is taken from the JWT token - authentication required.
@@ -36,15 +35,15 @@ public class CommentController {
             @PathVariable Long productId,
             @RequestBody CommentCreateDTO payload) {
 
-        Long userId = getAuthenticatedUserId();
-        if (userId == null) {
+        User user = currentUserService.getCurrentUser().orElse(null);
+        if (user == null) {
             return ResponseEntity.status(401).build();
         }
 
-        CommentDTO comment = productService.createComment(
+        CommentDTO comment = commentService.createComment(
             productId,
             payload.getDescription(),
-            userId
+            user.getId()
         );
 
         return ResponseEntity.ok(comment);
@@ -53,28 +52,16 @@ public class CommentController {
     // Soft-deletes a comment; only the owner (identified by JWT) can delete their own comment.
     @DeleteMapping("/comments/{commentId}")
     public ResponseEntity<Void> deleteComment(@PathVariable Long commentId) {
-        Long userId = getAuthenticatedUserId();
-        if (userId == null) {
+        User user = currentUserService.getCurrentUser().orElse(null);
+        if (user == null) {
             return ResponseEntity.status(401).build();
         }
 
-        boolean deleted = productService.deleteCommentByOwner(commentId, userId);
+        boolean deleted = commentService.deleteCommentByOwner(commentId, user.getId());
         if (!deleted) {
             return ResponseEntity.status(403).build();
         }
 
         return ResponseEntity.noContent().build();
-    }
-
-    // Resolves the currently authenticated user's database ID from the security context.
-    private Long getAuthenticatedUserId() {
-        var auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null || !auth.isAuthenticated() || auth.getPrincipal().equals("anonymousUser")) {
-            return null;
-        }
-        String username = auth.getName();
-        return userRepository.findByUsernameAndIsDeletedFalse(username)
-                .map(user -> user.getId())
-                .orElse(null);
     }
 }

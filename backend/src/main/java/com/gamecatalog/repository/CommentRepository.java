@@ -10,6 +10,7 @@ import java.util.List;
 @Repository
 public interface CommentRepository extends JpaRepository<Comment, Long> {
     List<Comment> findByProductIdAndIsDeletedFalse(Long productId);
+    List<Comment> findByCreatorUserIdAndIsDeletedFalseOrderByCreationDateDesc(Long creatorUserId);
     List<Comment> findByIsDeletedFalse();
     java.util.Optional<Comment> findByIdAndCreatorUserIdAndIsDeletedFalse(Long id, Long creatorUserId);
 }
