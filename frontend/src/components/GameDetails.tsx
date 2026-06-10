@@ -8,6 +8,8 @@ interface GameDetailsProps {
   onClose: () => void;
 }
 
+// EN: Details modal; loads one saved product, its reviews, current user, and favorite state.
+// RU: Модальное окно деталей; загружает один сохранённый продукт, отзывы, текущего пользователя и избранное.
 const GameDetails: React.FC<GameDetailsProps> = ({ productId, onClose }) => {
   const [data, setData] = useState<ProductWithComments | null>(null);
   const [comments, setComments] = useState<Comment[]>([]);
@@ -21,6 +23,8 @@ const GameDetails: React.FC<GameDetailsProps> = ({ productId, onClose }) => {
   const [isFavorite, setIsFavorite] = useState<boolean>(false);
   const [favoriteLoading, setFavoriteLoading] = useState<boolean>(false);
 
+  // EN: Converts the IGDB id selected in the catalog into the local product + comments payload.
+  // RU: Превращает выбранный в каталоге IGDB id в локальный продукт с комментариями.
   const fetchGameDetails = useCallback(async () => {
     try {
       setLoading(true);
@@ -35,6 +39,8 @@ const GameDetails: React.FC<GameDetailsProps> = ({ productId, onClose }) => {
     }
   }, [productId]);
 
+  // EN: Reads the current authenticated user so the UI can show comment/favorite actions safely.
+  // RU: Получает текущего авторизованного пользователя, чтобы безопасно показывать действия с отзывами и избранным.
   const fetchCurrentUser = useCallback(async () => {
     const token = localStorage.getItem('token');
     setHasToken(Boolean(token));
@@ -57,6 +63,8 @@ const GameDetails: React.FC<GameDetailsProps> = ({ productId, onClose }) => {
     setCurrentUsername(null);
   }, []);
 
+  // EN: Favorite status is checked against the local product id, not the external IGDB id.
+  // RU: Статус избранного проверяется по локальному id продукта, а не по внешнему IGDB id.
   const fetchFavoriteStatus = useCallback(async (productRecordId: number) => {
     if (!localStorage.getItem('token')) {
       setIsFavorite(false);
@@ -93,6 +101,8 @@ const GameDetails: React.FC<GameDetailsProps> = ({ productId, onClose }) => {
     };
   }, [fetchCurrentUser]);
 
+  // EN: Keeps review dates readable without sending formatting rules from the backend.
+  // RU: Делает даты отзывов читаемыми без передачи правил форматирования с бэка.
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     const now = new Date();
@@ -107,6 +117,8 @@ const GameDetails: React.FC<GameDetailsProps> = ({ productId, onClose }) => {
     return date.toLocaleDateString();
   };
 
+  // EN: Posts a review as the current user, then appends the created DTO to local state.
+  // RU: Публикует отзыв от текущего пользователя и добавляет созданный DTO в локальное состояние.
   const handleSubmitComment = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newComment.trim()) return;
@@ -130,6 +142,8 @@ const GameDetails: React.FC<GameDetailsProps> = ({ productId, onClose }) => {
     }
   };
 
+  // EN: Deletes only comments owned by the current user; backend enforces the same rule.
+  // RU: Удаляет только отзывы текущего пользователя; бэкенд проверяет то же правило.
   const handleDeleteComment = async (commentId: number) => {
     if (!window.confirm('Delete your comment?')) return;
 
@@ -141,6 +155,8 @@ const GameDetails: React.FC<GameDetailsProps> = ({ productId, onClose }) => {
     }
   };
 
+  // EN: Toggles favorite state optimistically after the backend confirms the change.
+  // RU: Переключает избранное после подтверждения изменения бэкендом.
   const handleToggleFavorite = async () => {
     const productRecordId = data?.product.id;
     if (!productRecordId || !canComment) return;

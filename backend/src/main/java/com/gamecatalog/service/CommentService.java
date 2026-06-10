@@ -12,6 +12,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.stream.Collectors;
 
+// EN: Business layer for product reviews/comments.
+// RU: Бизнес-слой для отзывов/комментариев к продуктам.
 @Service
 public class CommentService {
     private final CommentRepository commentRepository;
@@ -27,6 +29,8 @@ public class CommentService {
         this.seedReviewService = seedReviewService;
     }
 
+    // EN: Returns active comments and repairs legacy seeded authors before mapping to DTOs.
+    // RU: Возвращает активные комментарии и чинит старых seed-авторов перед маппингом в DTO.
     @Transactional
     public List<CommentDTO> getCommentsByProductId(Long productId) {
         seedReviewService.repairLegacyOwners(productId);
@@ -36,6 +40,8 @@ public class CommentService {
                 .collect(Collectors.toList());
     }
 
+    // EN: Creates a user-written comment for an existing product.
+    // RU: Создаёт пользовательский комментарий к существующему продукту.
     @Transactional
     public CommentDTO createComment(Long productId, String description, Long creatorUserId) {
         Product product = productRepository.findById(productId)
@@ -46,6 +52,8 @@ public class CommentService {
         return commentMapper.toDTO(saved);
     }
 
+    // EN: Soft-deletes a comment only when it belongs to the requesting user.
+    // RU: Мягко удаляет комментарий только если он принадлежит запрашивающему пользователю.
     @Transactional
     public boolean deleteCommentByOwner(Long commentId, Long requestingUserId) {
         return commentRepository.findByIdAndCreatorUserIdAndIsDeletedFalse(commentId, requestingUserId)

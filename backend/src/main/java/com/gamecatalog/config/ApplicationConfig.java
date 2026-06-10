@@ -12,6 +12,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+// EN: Wires Spring Security beans: user lookup, password hashing, and authentication manager.
+// RU: Подключает Spring Security beans: поиск пользователя, хеширование паролей и authentication manager.
 @Configuration
 public class ApplicationConfig {
 
@@ -21,6 +23,8 @@ public class ApplicationConfig {
         this.userRepository = userRepository;
     }
 
+    // EN: Loads active users from the database for login and JWT validation.
+    // RU: Загружает активных пользователей из базы для входа и проверки JWT.
     @Bean
     public UserDetailsService userDetailsService() {
         return username -> userRepository.findByUsernameAndIsDeletedFalse(username)
@@ -32,6 +36,8 @@ public class ApplicationConfig {
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
     }
 
+    // EN: Connects the user details service with BCrypt password verification.
+    // RU: Соединяет user details service с проверкой BCrypt-паролей.
     @Bean
     public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
@@ -40,11 +46,15 @@ public class ApplicationConfig {
         return authProvider;
     }
 
+    // EN: Exposes Spring's authentication manager for AuthService.login().
+    // RU: Открывает Spring authentication manager для AuthService.login().
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
 
+    // EN: Hashes new passwords and verifies login passwords.
+    // RU: Хеширует новые пароли и проверяет пароли при входе.
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();

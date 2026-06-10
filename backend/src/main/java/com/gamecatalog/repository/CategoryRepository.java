@@ -7,7 +7,8 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Optional;
 
-// Database access for categories.
+// EN: Database access for game categories/genres.
+// RU: Доступ к базе для категорий/жанров игр.
 @Repository
 public interface CategoryRepository extends JpaRepository<Category, Long> {
     List<Category> findByIsDeletedFalse();

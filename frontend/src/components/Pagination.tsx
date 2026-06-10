@@ -9,6 +9,8 @@ interface PaginationProps {
   onNext: () => void;
 }
 
+// EN: Page navigation for offset/limit lists returned by the backend.
+// RU: Навигация по страницам для списков backend-формата offset/limit.
 const Pagination: React.FC<PaginationProps> = ({
   offset,
   limit,

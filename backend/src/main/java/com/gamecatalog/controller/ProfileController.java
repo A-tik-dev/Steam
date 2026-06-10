@@ -7,6 +7,8 @@ import com.gamecatalog.service.ProfileService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+// EN: Profile API for the authenticated user.
+// RU: API профиля авторизованного пользователя.
 @RestController
 @RequestMapping("/api/profile")
 public class ProfileController {
@@ -18,6 +20,8 @@ public class ProfileController {
         this.profileService = profileService;
     }
 
+    // EN: Returns current user details plus their comments and favorite games.
+    // RU: Возвращает данные текущего пользователя, его комментарии и избранные игры.
     @GetMapping("/me")
     public ResponseEntity<UserProfileDTO> getMyProfile() {
         User user = currentUserService.getCurrentUser().orElse(null);

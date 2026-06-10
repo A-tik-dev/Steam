@@ -48,8 +48,15 @@
 }
 
 .all-games-section h2 {
-  margin-bottom: 16px;
   font-size: 22px;
+}
+
+.section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
 }
 
 .search-bar {
@@ -58,8 +65,21 @@
   gap: 10px;
 }
 
+.category-filter {
+  display: grid;
+  grid-template-columns: auto minmax(180px, 260px);
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  margin-top: 12px;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 700;
+}
+
 .search-bar input,
 .limit-select,
+.category-filter select,
 .search-bar button,
 .pagination button {
   min-height: 42px;
@@ -69,7 +89,8 @@
 }
 
 .search-bar input,
-.limit-select {
+.limit-select,
+.category-filter select {
   background: rgba(8, 4, 16, 0.72);
   color: var(--text);
 }
@@ -79,9 +100,27 @@
 }
 
 .search-bar input:focus,
-.limit-select:focus {
+.limit-select:focus,
+.category-filter select:focus {
   outline: 2px solid rgba(168, 85, 247, 0.36);
   border-color: var(--accent-strong);
+}
+
+.clear-filter-button {
+  min-height: 36px;
+  border: 1px solid rgba(103, 232, 249, 0.3);
+  border-radius: 8px;
+  padding: 8px 12px;
+  background: rgba(103, 232, 249, 0.1);
+  color: #d9fbff;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.empty-filter-state {
+  margin: 18px 0 0;
+  color: var(--muted);
+  text-align: center;
 }
 
 .search-bar button,
@@ -330,6 +369,16 @@
 
   .search-bar {
     grid-template-columns: 1fr;
+  }
+
+  .category-filter,
+  .section-heading {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+  }
+
+  .section-heading {
+    flex-direction: column;
   }
 
   .games-grid,

@@ -11,7 +11,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-// Returns product details together with its comments.
+// EN: Returns locally saved product details together with its comments.
+// RU: Возвращает детали локально сохранённого продукта вместе с комментариями.
 @RestController
 @RequestMapping("/api/products")
 public class ProductController {
@@ -26,7 +27,8 @@ public class ProductController {
         this.productMapper = productMapper;
     }
 
-    // Uses the external IGDB id from the frontend and returns product + comments with usernames.
+    // EN: Uses the external IGDB id from the frontend and returns product + comments with usernames.
+    // RU: Использует внешний IGDB id с фронтенда и возвращает продукт + комментарии с именами пользователей.
     @GetMapping("/{id}")
     public ResponseEntity<ProductWithCommentsDTO> getProductWithComments(@PathVariable Long id) {
         Product product = productService.getProductByIgdbId(id);

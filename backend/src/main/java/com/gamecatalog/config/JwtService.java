@@ -11,11 +11,15 @@ import javax.crypto.SecretKey;
 import java.util.Date;
 import java.util.function.Function;
 
+// EN: Creates and validates JWT tokens used by the frontend for authenticated requests.
+// RU: Создаёт и проверяет JWT-токены, которые фронтенд использует для авторизованных запросов.
 @Service
 public class JwtService {
 
     private static final String SECRET_KEY = "404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970";
 
+    // EN: Extracts username stored as the token subject.
+    // RU: Достаёт username, сохранённый как subject токена.
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
     }
@@ -25,6 +29,8 @@ public class JwtService {
         return claimsResolver.apply(claims);
     }
 
+    // EN: Generates a one-day token for the authenticated user.
+    // RU: Генерирует токен на один день для авторизованного пользователя.
     public String generateToken(UserDetails userDetails) {
         return Jwts.builder()
                 .subject(userDetails.getUsername())
@@ -34,6 +40,8 @@ public class JwtService {
                 .compact();
     }
 
+    // EN: Token is valid only when username matches and expiration time is still in the future.
+    // RU: Токен валиден только если username совпадает и срок действия ещё не истёк.
     public boolean isTokenValid(String token, UserDetails userDetails) {
         final String username = extractUsername(token);
         return (username.equals(userDetails.getUsername())) && !isTokenExpired(token);

@@ -6,7 +6,8 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
-// Database access for products.
+// EN: Database access for local products imported from IGDB.
+// RU: Доступ к базе для локальных продуктов, импортированных из IGDB.
 @Repository
 public interface ProductRepository extends JpaRepository<Product, Long> {
     List<Product> findByIsDeletedFalse();

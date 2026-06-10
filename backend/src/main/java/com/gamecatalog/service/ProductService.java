@@ -6,6 +6,8 @@ import com.gamecatalog.repository.ProductRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+// EN: Owns local Product records created from IGDB games and their initial seeded reviews.
+// RU: Отвечает за локальные Product-записи из IGDB-игр и стартовые сгенерированные отзывы.
 @Service
 public class ProductService {
     private static final Long SYSTEM_USER_ID = 1L;
@@ -18,6 +20,8 @@ public class ProductService {
         this.seedReviewService = seedReviewService;
     }
 
+    // EN: Saves a fetched IGDB game once; existing products are reused and legacy review owners are repaired.
+    // RU: Сохраняет полученную IGDB-игру один раз; существующие продукты переиспользуются, владельцы старых отзывов чинятся.
     @Transactional
     public Product saveGameWithReviews(GameDTO gameDTO) {
         Product existingProduct = productRepository.findByIgdbId(gameDTO.getId());
@@ -40,6 +44,8 @@ public class ProductService {
         return productRepository.findByIgdbId(igdbId);
     }
 
+    // EN: Builds a Product entity from the external IGDB DTO before persistence.
+    // RU: Собирает Product entity из внешнего IGDB DTO перед сохранением.
     private Product createProductFromGame(GameDTO gameDTO) {
         Product product = new Product(
                 gameDTO.getName(),

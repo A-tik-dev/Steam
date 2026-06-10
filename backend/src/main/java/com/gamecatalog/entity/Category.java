@@ -4,7 +4,8 @@ import jakarta.persistence.*;
 import java.util.HashSet;
 import java.util.Set;
 
-// Genre/category stored locally and linked to products.
+// EN: Genre/category label stored locally and linked to products.
+// RU: Жанр/категория, сохранённая локально и связанная с продуктами.
 @Entity
 @Table(name = "category")
 public class Category {

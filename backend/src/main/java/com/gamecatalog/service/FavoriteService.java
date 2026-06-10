@@ -13,6 +13,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.stream.Collectors;
 
+// EN: Business layer for adding/removing products from a user's favorites.
+// RU: Бизнес-слой для добавления/удаления продуктов из избранного пользователя.
 @Service
 public class FavoriteService {
     private final FavoriteRepository favoriteRepository;
@@ -26,11 +28,15 @@ public class FavoriteService {
         this.productMapper = productMapper;
     }
 
+    // EN: Checks whether the favorite relation exists without changing data.
+    // RU: Проверяет существование связи избранного без изменения данных.
     public FavoriteStatusDTO getStatus(Long productId, Long userId) {
         boolean favorite = favoriteRepository.existsByUserIdAndProductId(userId, productId);
         return new FavoriteStatusDTO(productId, favorite);
     }
 
+    // EN: Creates the favorite relation if it does not already exist.
+    // RU: Создаёт связь избранного, если она ещё не существует.
     @Transactional
     public FavoriteStatusDTO addFavorite(Long productId, Long userId) {
         if (!favoriteRepository.existsByUserIdAndProductId(userId, productId)) {
@@ -42,6 +48,8 @@ public class FavoriteService {
         return new FavoriteStatusDTO(productId, true);
     }
 
+    // EN: Deletes the favorite relation and returns the new "not favorite" state.
+    // RU: Удаляет связь избранного и возвращает новое состояние "не в избранном".
     @Transactional
     public FavoriteStatusDTO removeFavorite(Long productId, Long userId) {
         favoriteRepository.findByUserIdAndProductId(userId, productId)
@@ -49,6 +57,8 @@ public class FavoriteService {
         return new FavoriteStatusDTO(productId, false);
     }
 
+    // EN: Used by the profile screen to show the user's favorite products.
+    // RU: Используется экраном профиля, чтобы показать избранные продукты пользователя.
     public List<ProductDTO> getFavoriteProducts(Long userId) {
         return favoriteRepository.findByUserIdOrderByCreationDateDesc(userId)
                 .stream()

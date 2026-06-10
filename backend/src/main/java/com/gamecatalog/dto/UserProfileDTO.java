@@ -2,6 +2,8 @@ package com.gamecatalog.dto;
 
 import java.util.List;
 
+// EN: Full profile payload: user info, written comments, and favorite games.
+// RU: Полный payload профиля: данные пользователя, написанные комментарии и избранные игры.
 public class UserProfileDTO {
     private CurrentUserDTO user;
     private List<ProfileCommentDTO> comments;

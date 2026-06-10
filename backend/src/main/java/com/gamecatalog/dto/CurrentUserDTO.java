@@ -1,5 +1,7 @@
 package com.gamecatalog.dto;
 
+// EN: Public user shape returned to the frontend after JWT authentication.
+// RU: Публичная форма пользователя, которую frontend получает после JWT-авторизации.
 public class CurrentUserDTO {
     private Long id;
     private String username;

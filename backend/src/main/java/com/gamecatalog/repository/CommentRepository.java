@@ -6,7 +6,8 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
-// Database access for comments.
+// EN: Database access for comments, including owner checks and profile history.
+// RU: Доступ к базе для комментариев, включая проверку владельца и историю профиля.
 @Repository
 public interface CommentRepository extends JpaRepository<Comment, Long> {
     List<Comment> findByProductIdAndIsDeletedFalse(Long productId);

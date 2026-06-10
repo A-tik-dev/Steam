@@ -1,5 +1,7 @@
 package com.gamecatalog.dto;
 
+// EN: Response for favorite toggle/status endpoints.
+// RU: Ответ для endpoints проверки и переключения избранного.
 public class FavoriteStatusDTO {
     private Long productId;
     private boolean favorite;

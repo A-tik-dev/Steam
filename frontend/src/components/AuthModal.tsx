@@ -8,6 +8,8 @@ interface AuthModalProps {
   onSuccess: (token: string, username: string) => void;
 }
 
+// EN: Login/register modal; talks to authService and stores the returned JWT for future API calls.
+// RU: Модальное окно входа/регистрации; обращается к authService и сохраняет JWT для следующих API-запросов.
 const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess }) => {
   const [isLogin, setIsLogin] = useState(true);
   const [username, setUsername] = useState('');
@@ -25,6 +27,8 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess }) => 
 
   if (!isOpen) return null;
 
+  // EN: Converts backend/API errors into short messages suitable for the form.
+  // RU: Преобразует ошибки бэка/API в короткие сообщения для формы.
   const getAuthErrorMessage = (err: any) => {
     const status = err.response?.status;
     const responseData = err.response?.data;
@@ -48,6 +52,8 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess }) => 
     return isLogin ? 'Could not log in. Try again.' : 'Could not create account. Try again.';
   };
 
+  // EN: Sends credentials to either login or register endpoint based on the current mode.
+  // RU: Отправляет логин/пароль в endpoint входа или регистрации в зависимости от режима.
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -75,6 +81,8 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess }) => 
     }
   };
 
+  // EN: Switches between login and account creation while keeping stale errors out of the UI.
+  // RU: Переключает вход и создание аккаунта, убирая устаревшие ошибки из UI.
   const toggleMode = () => {
     setIsLogin(prev => !prev);
     setError('');

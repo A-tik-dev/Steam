@@ -4,7 +4,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 
-// Maps the IGDB game payload used by the app.
+// EN: Maps the IGDB game payload used by the app.
+// RU: Описывает payload игры из IGDB, который использует приложение.
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class GameDTO {
     private Long id;
@@ -23,9 +24,8 @@ public class GameDTO {
     @JsonProperty("genres")
     private List<Genre> genres;
 
-    /**
-     * Nested DTO for IGDB cover object.
-     */
+    // EN: Nested DTO for IGDB cover object.
+    // RU: Вложенный DTO для объекта обложки IGDB.
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Cover {
         @JsonProperty("image_id")
@@ -39,7 +39,8 @@ public class GameDTO {
             this.imageId = imageId;
         }
 
-        // Builds a public IGDB cover URL from the image id.
+        // EN: Builds a public IGDB cover URL from the image id.
+        // RU: Собирает публичный URL обложки IGDB из image id.
         public String getUrl() {
             return imageId != null ? "https://images.igdb.com/igdb/image/upload/t_cover_big/" + imageId + ".jpg" : null;
         }
@@ -60,7 +61,16 @@ public class GameDTO {
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Genre {
+        private Long id;
         private String name;
+
+        public Long getId() {
+            return id;
+        }
+
+        public void setId(Long id) {
+            this.id = id;
+        }
 
         public String getName() {
             return name;

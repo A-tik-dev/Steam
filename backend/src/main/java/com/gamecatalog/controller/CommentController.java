@@ -10,7 +10,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-// Handles comment read, create, and delete operations for products.
+// EN: Handles comment read, create, and delete operations for products.
+// RU: Обрабатывает чтение, создание и удаление комментариев к продуктам.
 @RestController
 @RequestMapping("/api/products")
 public class CommentController {
@@ -23,13 +24,15 @@ public class CommentController {
         this.currentUserService = currentUserService;
     }
 
-    // Returns active comments (with usernames) for a product.
+    // EN: Returns active comments (with usernames) for a product.
+    // RU: Возвращает активные комментарии к продукту вместе с username авторов.
     @GetMapping("/{productId}/comments")
     public ResponseEntity<List<CommentDTO>> getCommentsByProductId(@PathVariable Long productId) {
         return ResponseEntity.ok(commentService.getCommentsByProductId(productId));
     }
 
-    // Creates a new comment; the creator is taken from the JWT token - authentication required.
+    // EN: Creates a new comment; the creator is taken from the JWT token - authentication required.
+    // RU: Создаёт новый комментарий; автор берётся из JWT-токена, поэтому нужна авторизация.
     @PostMapping("/{productId}/comments")
     public ResponseEntity<CommentDTO> createComment(
             @PathVariable Long productId,
@@ -49,7 +52,8 @@ public class CommentController {
         return ResponseEntity.ok(comment);
     }
 
-    // Soft-deletes a comment; only the owner (identified by JWT) can delete their own comment.
+    // EN: Soft-deletes a comment; only the owner (identified by JWT) can delete their own comment.
+    // RU: Мягко удаляет комментарий; удалить может только владелец, определённый по JWT.
     @DeleteMapping("/comments/{commentId}")
     public ResponseEntity<Void> deleteComment(@PathVariable Long commentId) {
         User user = currentUserService.getCurrentUser().orElse(null);

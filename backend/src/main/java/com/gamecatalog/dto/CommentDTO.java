@@ -1,5 +1,7 @@
 package com.gamecatalog.dto;
 
+// EN: Comment response shown under a game, including owner information.
+// RU: Ответ комментария под игрой, включая информацию о владельце.
 public class CommentDTO {
     private Long id;
     private String description;

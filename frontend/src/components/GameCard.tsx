@@ -6,6 +6,8 @@ interface GameCardProps {
   onClick: (id: number) => void;
 }
 
+// EN: Compact catalog tile; it displays one IGDB game and reports its id when selected.
+// RU: Компактная карточка каталога; показывает одну игру IGDB и сообщает её id при выборе.
 const GameCard: React.FC<GameCardProps> = ({ game, onClick }) => {
   return (
     <button className="game-card" onClick={() => onClick(game.id)} type="button">

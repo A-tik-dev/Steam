@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { CurrentUser, FavoriteStatus, Game, ProductWithComments, UserProfile } from '../types';
+import { CurrentUser, FavoriteStatus, Game, Genre, ProductWithComments, UserProfile } from '../types';
 
 interface AuthResponse {
   token: string;
@@ -8,6 +8,8 @@ interface AuthResponse {
 
 export const AUTH_CHANGED_EVENT = 'auth-changed';
 
+// EN: Removes stale auth data and broadcasts a local event for components in the same tab.
+// RU: Удаляет устаревшие данные авторизации и рассылает локальное событие компонентам в этой вкладке.
 const clearStoredAuth = () => {
   localStorage.removeItem('token');
   localStorage.removeItem('username');
@@ -67,6 +69,22 @@ export const gameService = {
     });
     return response.data;
   },
+
+  // EN: Loads all IGDB genres for the category selector.
+  // RU: Загружает все жанры IGDB для селектора категорий.
+  getGenres: async (): Promise<Genre[]> => {
+    const response = await api.get<Genre[]>('/games/genres');
+    return response.data;
+  },
+
+  // EN: Loads a real backend page of games for one selected genre.
+  // RU: Загружает настоящую backend-страницу игр для выбранного жанра.
+  getGamesByGenre: async (genreId: number, limit: number = 50, offset: number = 0): Promise<Game[]> => {
+    const response = await api.get<Game[]>(`/games/genre/${genreId}`, {
+      params: { limit, offset }
+    });
+    return response.data;
+  },
 };
 
 // EN: Product API group. Product is a locally persisted mirror of an IGDB game.
@@ -105,6 +123,8 @@ export const commentService = {
 };
 
 export const favoriteService = {
+  // EN: Reads whether the current user already added this product to favorites.
+  // RU: Проверяет, добавил ли текущий пользователь этот продукт в избранное.
   getStatus: async (productId: number): Promise<FavoriteStatus | null> => {
     try {
       const response = await api.get<FavoriteStatus>(`/products/${productId}/favorite`);
@@ -114,18 +134,26 @@ export const favoriteService = {
     }
   },
 
+  // EN: Adds the product to the current user's favorites.
+  // RU: Добавляет продукт в избранное текущего пользователя.
   addFavorite: async (productId: number): Promise<FavoriteStatus> => {
     const response = await api.post<FavoriteStatus>(`/products/${productId}/favorite`);
     return response.data;
   },
 
+  // EN: Removes the product from the current user's favorites.
+  // RU: Убирает продукт из избранного текущего пользователя.
   removeFavorite: async (productId: number): Promise<FavoriteStatus> => {
     const response = await api.delete<FavoriteStatus>(`/products/${productId}/favorite`);
     return response.data;
   },
 };
 
+// EN: Profile API group used by the side panel after the user is authenticated.
+// RU: Группа API профиля, используется боковой панелью после авторизации пользователя.
 export const profileService = {
+  // EN: Returns current user info together with their comments and favorite games.
+  // RU: Возвращает данные текущего пользователя вместе с его отзывами и избранными играми.
   getMyProfile: async (): Promise<UserProfile> => {
     const response = await api.get<UserProfile>('/profile/me');
     return response.data;

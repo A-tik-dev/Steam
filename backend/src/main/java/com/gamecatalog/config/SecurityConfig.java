@@ -29,6 +29,8 @@ public class SecurityConfig {
         this.authenticationProvider = authenticationProvider;
     }
 
+    // EN: Defines which routes are public and which require a JWT-authenticated user.
+    // RU: Определяет, какие маршруты публичные, а какие требуют пользователя с JWT.
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
@@ -56,6 +58,8 @@ public class SecurityConfig {
         return http.build();
     }
 
+    // EN: Small helper keeps Ant-style matcher creation readable.
+    // RU: Небольшой helper делает создание Ant-style matcher'ов читаемым.
     private static AntPathRequestMatcher path(String pattern) {
         return new AntPathRequestMatcher(pattern);
     }
@@ -64,6 +68,8 @@ public class SecurityConfig {
         return new AntPathRequestMatcher(pattern, method.name());
     }
 
+    // EN: Allows the React dev server/browser to call the backend API.
+    // RU: Разрешает React dev server/browser обращаться к backend API.
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();

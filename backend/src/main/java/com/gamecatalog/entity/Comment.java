@@ -3,7 +3,8 @@ package com.gamecatalog.entity;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
-// Review/comment attached to a product.
+// EN: Review/comment attached to a product and owned by one user.
+// RU: Отзыв/комментарий к продукту, принадлежащий одному пользователю.
 @Entity
 @Table(name = "comment")
 public class Comment {

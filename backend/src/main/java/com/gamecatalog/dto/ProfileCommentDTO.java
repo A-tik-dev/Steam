@@ -2,6 +2,8 @@ package com.gamecatalog.dto;
 
 import java.time.LocalDateTime;
 
+// EN: One comment item in the profile screen, including the game it belongs to.
+// RU: Один комментарий на экране профиля вместе с игрой, к которой он относится.
 public class ProfileCommentDTO {
     private Long commentId;
     private Long productId;

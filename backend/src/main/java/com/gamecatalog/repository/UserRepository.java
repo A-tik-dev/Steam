@@ -6,7 +6,8 @@ import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
-// Database access for users.
+// EN: Database access for active users used by authentication and display names.
+// RU: Доступ к базе для активных пользователей, авторизации и отображения имён.
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByUsernameAndIsDeletedFalse(String username);

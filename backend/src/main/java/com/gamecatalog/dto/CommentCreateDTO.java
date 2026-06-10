@@ -1,5 +1,7 @@
 package com.gamecatalog.dto;
 
+// EN: Request body for creating a new product comment.
+// RU: Тело запроса для создания нового комментария к продукту.
 public class CommentCreateDTO {
     private String description;
 

@@ -11,6 +11,8 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.stream.Collectors;
 
+// EN: Aggregates profile data from user info, comments, and favorites.
+// RU: Собирает данные профиля из информации о пользователе, комментариев и избранного.
 @Service
 public class ProfileService {
     private final CommentRepository commentRepository;
@@ -26,6 +28,8 @@ public class ProfileService {
         this.userMapper = userMapper;
     }
 
+    // EN: Builds the DTO returned by /api/profile/me.
+    // RU: Собирает DTO, который возвращает /api/profile/me.
     public UserProfileDTO getProfile(User user) {
         UserProfileDTO profile = new UserProfileDTO();
         profile.setUser(userMapper.toCurrentUserDTO(user));
@@ -34,6 +38,8 @@ public class ProfileService {
         return profile;
     }
 
+    // EN: Loads the user's visible comments newest first.
+    // RU: Загружает видимые комментарии пользователя, сначала новые.
     private List<ProfileCommentDTO> getUserComments(Long userId) {
         return commentRepository.findByCreatorUserIdAndIsDeletedFalseOrderByCreationDateDesc(userId)
                 .stream()

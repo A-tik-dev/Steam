@@ -3,6 +3,8 @@ package com.gamecatalog.entity;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
+// EN: Join entity that stores one user's favorite game/product.
+// RU: Связующая entity, которая хранит одну избранную игру/продукт пользователя.
 @Entity
 @Table(
     name = "favorite",

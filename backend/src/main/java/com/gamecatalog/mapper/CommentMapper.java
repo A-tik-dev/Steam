@@ -7,6 +7,8 @@ import com.gamecatalog.entity.User;
 import com.gamecatalog.repository.UserRepository;
 import org.springframework.stereotype.Component;
 
+// EN: Converts Comment entities into DTOs returned by product details and profile endpoints.
+// RU: Преобразует Comment entity в DTO для деталей продукта и профиля пользователя.
 @Component
 public class CommentMapper {
     private final UserRepository userRepository;
@@ -15,6 +17,8 @@ public class CommentMapper {
         this.userRepository = userRepository;
     }
 
+    // EN: DTO for the game details screen; includes author username for display.
+    // RU: DTO для экрана деталей игры; включает username автора для отображения.
     public CommentDTO toDTO(Comment comment) {
         CommentDTO dto = new CommentDTO();
         dto.setId(comment.getId());
@@ -26,6 +30,8 @@ public class CommentMapper {
         return dto;
     }
 
+    // EN: DTO for profile history; includes the game that received the comment.
+    // RU: DTO для истории в профиле; включает игру, к которой написан комментарий.
     public ProfileCommentDTO toProfileDTO(Comment comment) {
         ProfileCommentDTO dto = new ProfileCommentDTO();
         dto.setCommentId(comment.getId());

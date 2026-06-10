@@ -14,6 +14,8 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+// EN: Authentication API: register, login, and "who am I" endpoints for the frontend.
+// RU: API авторизации: регистрация, вход и endpoint "кто я" для фронтенда.
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
@@ -28,6 +30,8 @@ public class AuthController {
         this.userMapper = userMapper;
     }
 
+    // EN: Creates a user account and returns JWT credentials expected by the React app.
+    // RU: Создаёт аккаунт пользователя и возвращает JWT-данные, ожидаемые React-приложением.
     @PostMapping("/register")
     public ResponseEntity<AuthResponseDTO> register(@RequestBody RegisterRequestDTO request) {
         try {
@@ -42,6 +46,8 @@ public class AuthController {
         }
     }
 
+    // EN: Authenticates existing users and maps bad credentials to HTTP 401.
+    // RU: Авторизует существующих пользователей и превращает неверные данные в HTTP 401.
     @PostMapping("/login")
     public ResponseEntity<AuthResponseDTO> login(@RequestBody AuthRequestDTO request) {
         try {
@@ -53,7 +59,8 @@ public class AuthController {
         }
     }
 
-    // Returns the current user's id and username based on the JWT token.
+    // EN: Returns the current user's id and username based on the JWT token.
+    // RU: Возвращает id и username текущего пользователя на основе JWT-токена.
     @GetMapping("/me")
     public ResponseEntity<CurrentUserDTO> getCurrentUser() {
         return currentUserService.getCurrentUser()
@@ -62,11 +69,15 @@ public class AuthController {
                 .orElseGet(() -> ResponseEntity.status(401).build());
     }
 
+    // EN: Keeps validation errors in a consistent JSON shape for the frontend.
+    // RU: Возвращает ошибки валидации в едином JSON-формате для фронтенда.
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ApiErrorDTO> handleBadRequest(IllegalArgumentException e) {
         return ResponseEntity.badRequest().body(new ApiErrorDTO(e.getMessage()));
     }
 
+    // EN: Converts explicit response statuses (409/401/etc.) into the same error DTO.
+    // RU: Преобразует явные статусы ответа (409/401 и т.д.) в тот же error DTO.
     @ExceptionHandler(ResponseStatusException.class)
     public ResponseEntity<ApiErrorDTO> handleStatus(ResponseStatusException e) {
         return ResponseEntity.status(e.getStatusCode()).body(new ApiErrorDTO(e.getReason()));

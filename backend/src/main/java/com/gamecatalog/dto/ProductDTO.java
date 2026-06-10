@@ -1,5 +1,7 @@
 package com.gamecatalog.dto;
 
+// EN: Product response for locally saved IGDB game data.
+// RU: Ответ продукта для локально сохранённых данных игры из IGDB.
 public class ProductDTO {
     private Long id;
     private String title;

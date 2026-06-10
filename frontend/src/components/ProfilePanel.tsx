@@ -8,11 +8,15 @@ interface ProfilePanelProps {
   onClose: () => void;
 }
 
+// EN: Side panel for the logged-in user; shows favorite games and review history.
+// RU: Боковая панель авторизованного пользователя; показывает избранные игры и историю отзывов.
 const ProfilePanel: React.FC<ProfilePanelProps> = ({ isOpen, onClose }) => {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // EN: Profile data is loaded only when the panel opens to avoid unnecessary API calls.
+  // RU: Данные профиля загружаются только при открытии панели, чтобы не делать лишние API-запросы.
   useEffect(() => {
     if (!isOpen) return;
 

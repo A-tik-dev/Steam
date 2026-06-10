@@ -4,6 +4,8 @@ import com.gamecatalog.dto.ProductDTO;
 import com.gamecatalog.entity.Product;
 import org.springframework.stereotype.Component;
 
+// EN: Converts stored Product entities into DTOs safe to send to the frontend.
+// RU: Преобразует сохранённые Product entity в DTO, которые безопасно отдавать фронтенду.
 @Component
 public class ProductMapper {
     public ProductDTO toDTO(Product product) {

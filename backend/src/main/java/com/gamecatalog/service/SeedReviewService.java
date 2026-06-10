@@ -14,6 +14,8 @@ import java.util.Random;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+// EN: Creates believable starter reviews for newly imported games and repairs old seeded owners.
+// RU: Создаёт правдоподобные стартовые отзывы для новых игр и чинит владельцев старых seed-отзывов.
 @Service
 public class SeedReviewService {
     private static final Long LEGACY_SYSTEM_USER_ID = 1L;
@@ -68,6 +70,8 @@ public class SeedReviewService {
         this.mockReviewerService = mockReviewerService;
     }
 
+    // EN: Adds two or three seeded reviews using mock reviewer accounts.
+    // RU: Добавляет два или три seed-отзыва от mock-аккаунтов reviewer'ов.
     public void createReviews(Product product, Double rating) {
         int reviewCount = 2 + random.nextInt(2);
         List<User> reviewers = mockReviewerService.getOrCreateReviewers();
@@ -83,6 +87,8 @@ public class SeedReviewService {
         commentRepository.saveAll(comments);
     }
 
+    // EN: Moves legacy seeded comments away from the old system user to reviewer accounts.
+    // RU: Переносит старые seed-комментарии со старого системного пользователя на reviewer-аккаунты.
     public void repairLegacyOwners(Long productId) {
         List<Comment> legacyComments = commentRepository.findByProductIdAndIsDeletedFalse(productId)
                 .stream()
@@ -103,6 +109,8 @@ public class SeedReviewService {
         commentRepository.saveAll(legacyComments);
     }
 
+    // EN: Picks review tone based on IGDB rating.
+    // RU: Выбирает тон отзыва на основе рейтинга IGDB.
     private String selectReviewText(Double rating) {
         if (rating == null) {
             return randomText(MIXED_REVIEWS);

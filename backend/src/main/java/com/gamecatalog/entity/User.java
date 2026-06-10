@@ -3,7 +3,8 @@ package com.gamecatalog.entity;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
-// Application user record used by auth and author fields.
+// EN: Local application user used for login, comments, and favorites.
+// RU: Локальный пользователь приложения для входа, комментариев и избранного.
 @Entity
 @Table(name = "users")
 public class User {

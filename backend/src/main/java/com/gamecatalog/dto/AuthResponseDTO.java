@@ -1,5 +1,7 @@
 package com.gamecatalog.dto;
 
+// EN: Auth response body containing the JWT and display username.
+// RU: Ответ авторизации с JWT и username для отображения.
 public class AuthResponseDTO {
     private String token;
     private String username;

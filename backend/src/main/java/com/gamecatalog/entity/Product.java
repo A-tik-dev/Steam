@@ -5,7 +5,8 @@ import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
-// Local mirror of an IGDB game with comments and categories.
+// EN: Local mirror of an IGDB game with comments and categories.
+// RU: Локальная копия игры из IGDB с комментариями и категориями.
 @Entity
 @Table(name = "product")
 public class Product {
@@ -33,7 +34,8 @@ public class Product {
     @Column(unique = true)
     private Long igdbId;
 
-    // Many-to-many relation with categories.
+    // EN: A product can have many categories, and a category can belong to many products.
+    // RU: У продукта может быть много категорий, и категория может относиться к многим продуктам.
     @ManyToMany
     @JoinTable(
         name = "product_category",
@@ -42,7 +44,8 @@ public class Product {
     )
     private Set<Category> categories = new HashSet<>();
 
-    // Comments belong to a product.
+    // EN: Comments are stored under the product they were written for.
+    // RU: Комментарии хранятся у продукта, к которому они были написаны.
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
     @com.fasterxml.jackson.annotation.JsonManagedReference
     private Set<Comment> comments = new HashSet<>();

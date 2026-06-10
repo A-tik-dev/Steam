@@ -26,6 +26,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         this.userDetailsService = userDetailsService;
     }
 
+    // EN: Reads Bearer tokens, validates JWT, and fills Spring Security context for protected endpoints.
+    // RU: Читает Bearer-токены, проверяет JWT и заполняет Spring Security context для защищённых endpoints.
     @Override
     protected void doFilterInternal(
             @NonNull HttpServletRequest request,
@@ -34,13 +36,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     ) throws ServletException, IOException {
         final String authHeader = request.getHeader("Authorization");
 
-        // If no Bearer token present, continue without authentication (public endpoints still work).
+        // EN: If no Bearer token is present, continue without authentication (public endpoints still work).
+        // RU: Если Bearer-токена нет, продолжаем без авторизации (публичные endpoints всё ещё работают).
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        // Wrap JWT parsing in try-catch: invalid/expired tokens must not block public endpoints.
+        // EN: Wrap JWT parsing in try-catch: invalid/expired tokens must not block public endpoints.
+        // RU: Оборачиваем JWT parsing в try-catch: невалидные/истёкшие токены не должны ломать публичные endpoints.
         try {
             final String jwt = authHeader.substring(7);
             final String username = jwtService.extractUsername(jwt);
@@ -58,8 +62,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 }
             }
         } catch (Exception e) {
-            // Token is malformed, expired, or signature is invalid.
-            // Do not set authentication; simply proceed with the filter chain as an anonymous request.
+            // EN: Token is malformed, expired, or signature is invalid; continue as anonymous.
+            // RU: Токен повреждён, истёк или подпись невалидна; продолжаем как анонимный запрос.
             SecurityContextHolder.clearContext();
         }
 

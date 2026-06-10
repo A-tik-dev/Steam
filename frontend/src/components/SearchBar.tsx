@@ -9,6 +9,8 @@ interface SearchBarProps {
   setLimit: (limit: number) => void;
 }
 
+// EN: Search controls; parent owns data loading, this component only emits user intent.
+// RU: Панель поиска; родитель загружает данные, а этот компонент только передаёт действия пользователя.
 const SearchBar: React.FC<SearchBarProps> = ({
   searchQuery,
   setSearchQuery,

@@ -9,6 +9,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+// EN: Ensures seed reviews are attached to realistic reviewer accounts instead of one system user.
+// RU: Следит, чтобы seed-отзывы были привязаны к реалистичным reviewer-аккаунтам, а не к одному системному пользователю.
 @Service
 public class MockReviewerService {
     private static final String[] REVIEWER_USERNAMES = {
@@ -28,6 +30,8 @@ public class MockReviewerService {
         this.passwordEncoder = passwordEncoder;
     }
 
+    // EN: Returns existing reviewer users or creates them with random passwords.
+    // RU: Возвращает существующих reviewer-пользователей или создаёт их со случайными паролями.
     public List<User> getOrCreateReviewers() {
         List<User> reviewers = new ArrayList<>();
 

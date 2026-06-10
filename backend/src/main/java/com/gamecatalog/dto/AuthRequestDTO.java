@@ -1,5 +1,7 @@
 package com.gamecatalog.dto;
 
+// EN: Login request body sent from the auth form.
+// RU: Тело запроса входа, которое отправляет форма авторизации.
 public class AuthRequestDTO {
     private String username;
     private String password;
